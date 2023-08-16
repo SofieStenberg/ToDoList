@@ -7,8 +7,8 @@ It also have the following functionalities:
 - Delete all entries by clicking the button `Delete All`
 - Delete all entries that are marked as finished by clicking the button `Delete completed items`
 - Open a new file
-- Save the current file to the current directory
-- Open a saved
+- Save the list to a text file to the current directory
+- Open a previously saved file
 - Rename the file
 
 ![](./screenshots/ToDoApplication.png)
