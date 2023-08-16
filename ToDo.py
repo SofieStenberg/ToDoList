@@ -139,7 +139,9 @@ class ToDo:
     
     # Saves the information about the checkbuttons to a file 
     def saveToFile(self):
-        title = "./" + self.title.cget('text') + ".txt"
+        
+        #path = self.askForDirectory(0)
+        title = filedialog.askdirectory() + '/' + self.title.cget('text') + ".txt"
         outputFile = open(title, 'w')
         for entry in self.containerCheckbuttons.values():
             if entry.state():
