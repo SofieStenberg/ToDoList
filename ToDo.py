@@ -78,11 +78,12 @@ class ToDo:
         self.file = Menu(self.menubar)
         self.menubar.add_cascade(menu=self.file, label='File')
         # self.file.add_separator()
+        self.file.add_command(label='New', command=self.newWindow)
         self.file.add_command(label='Save', command=self.saveToFile)
-        self.file.add_command(label='Open...', command=self.newWindow)
+        self.file.add_command(label='Open...', command=self.askForDirectory)
         self.file.add_command(label='Rename', command=self.changeTitle)
 
-        # If this is a new window, load in the specified file
+        # If this is a window opened for a file, load in the specified file
         if self.filename != '':
             self.openFile()
         
@@ -95,7 +96,7 @@ class ToDo:
             messagebox.showinfo('Missing input' ,"You have to insert an item!")
             return
         for entry in self.containerCheckbuttons.values():
-            if item == entry.cget('text'):
+            if item.lower() == entry.cget('text').lower():
                 messagebox.showinfo('Already exists' ,"The item already exists!")
                 self.entryItem.delete(0, END)  
                 return
@@ -147,14 +148,16 @@ class ToDo:
                 outputFile.write(entry.cget('text') + '\t' + 'False' + '\n')
         outputFile.close()
 
+    def askForDirectory(self):
+        self.filename = filedialog.askopenfilename(initialdir=os.getcwd(), title='Select a file', 
+                                                          filetypes=(('text files','*.txt'),))
+        self.newWindow()
+
     # When creating a new window, if using newWindow=Toplevel()
     # this newWindow will close whenever the fist created window is closed.
     # For an new independent window, instead use independetNewWindow=Tk()
     def newWindow(self):
-        self.filename = filedialog.askopenfilename(initialdir=os.getcwd(), title='Select a file', 
-                                                          filetypes=(('text files','*.txt'),))
         newWindow = Tk()
-        # 0 = starting window. 1 = new window
         newToDo = ToDo(newWindow, self.filename)
         newWindow.mainloop()
     

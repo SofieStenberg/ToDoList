@@ -1,2 +1,5 @@
-ti	False
-teat	True
+adding	False
+items	False
+on	True
+the	False
+way	False
