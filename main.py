@@ -2,9 +2,14 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import simpledialog
+from tkinter import filedialog
+import os
+
 
 class ToDo:
-    def __init__(self, master):
+    def __init__(self, master, filename):
+        self.filename = filename
+        
         # Keep track of the number of created checkbuttons to ensure 
         # a unique ID in the dictionary 
         self.nrOfCheckbuttons = 0
@@ -41,27 +46,30 @@ class ToDo:
         self.frameManage = ttk.Frame(self.master)#, borderwidth=2, relief=RIDGE)
         self.frameManage.pack(pady=5)
         
-        ttk.Label(self.frameManage, text='Describe new item:', font=('Times New Roman', 14)).grid(row=0, column=0, sticky=SW)
+        ttk.Label(self.frameManage, text='Describe new item:', 
+                  font=('Times New Roman', 14)).grid(row=0, column=0, sticky=SW)
         self.entryItem = ttk.Entry(self.frameManage, width=50, font=('Times New Roman', 14))
         self.entryItem.grid(row=1, column=0, padx=5)
 
-        ttk.Button(self.frameManage, text='Add new item', command=lambda: self.addItem(self.entryItem.get())).grid(row=1, column=3, padx=5)
-        ttk.Button(self.frameManage, text='Delete completed items', command=self.deleteFinished).grid(row=1, column=4, padx=5)
-        ttk.Button(self.frameManage, text='Delete All', command=self.deletaAll).grid(row=1, column=5, padx=5)
+        ttk.Button(self.frameManage, text='Add new item', 
+                   command=lambda: self.addItem(self.entryItem.get())).grid(row=1, column=3, padx=5)
+        ttk.Button(self.frameManage, text='Delete completed items', 
+                   command=self.deleteFinished).grid(row=1, column=4, padx=5)
+        ttk.Button(self.frameManage, text='Delete All', 
+                   command=self.deletaAll).grid(row=1, column=5, padx=5)
 
         # Scrollbar - NOT WORKING?!?!
         self.canvasContent = Canvas(self.master, width=300, height=300, #scrollregion=(0, 0, 100, 300)
                                     background='beige')
-        #self.canvasContent.configure(scrollregion=self.canvasContent.bbox('all'))
-        #self.verticalScrollbar = Scrollbar(self.master, orient=VERTICAL, command=self.canvasContent.yview)#, command=self.canvasContent.yview)
-        #self.verticalScrollbar.pack(side=RIGHT, fill=Y)
-        #self.verticalScrollbar.configure(command=self.canvasContent.yview)
-        #self.canvasContent.configure(yscrollcommand=self.verticalScrollbar.set) #, width=300, height=300
         self.canvasContent.pack(side=LEFT, anchor=W, padx=15, expand=True, fill=BOTH)
-        
-
-        # self.frameContent = ttk.Frame(self.canvasContent)
-        # self.frameContent.pack(side=TOP, anchor=W, padx=15 )
+        #self.canvasContent.configure(scrollregion=self.canvasContent.bbox('all'))
+        #self.vScrollbar = Scrollbar(self.master, orient=VERTICAL, command=self.canvasContent.yview)#, command=self.canvasContent.yview)
+        # self.vScrollbar = Scrollbar(self.master)
+        # self.vScrollbar.pack(side=RIGHT, fill=Y)
+        # #self.vScrollbar.configure(command=self.canvasContent.yview)
+        # self.canvasContent.configure(yscrollcommand=self.vScrollbar.set) #, width=300, height=300
+        # self.vScrollbar.configure(command=self.canvasContent.yview)
+      
 
         # Menu bar
         self.master.option_add('*tearOff', False)
@@ -69,9 +77,14 @@ class ToDo:
         self.master.config(menu=self.menubar)
         self.file = Menu(self.menubar)
         self.menubar.add_cascade(menu=self.file, label='File')
-        self.file.add_separator()
+        # self.file.add_separator()
+        self.file.add_command(label='Save', command=self.saveToFile)
+        self.file.add_command(label='Open...', command=self.newWindow)
         self.file.add_command(label='Rename', command=self.changeTitle)
 
+        # If this is a new window, load in the specified file
+        if self.filename != '':
+            self.openFile()
         
     # The addItem() function will first check if the entry field is empty or contains an item that already exists
     # If so, an informational pop up will appear with this information.
@@ -86,7 +99,6 @@ class ToDo:
                 messagebox.showinfo('Already exists' ,"The item already exists!")
                 self.entryItem.delete(0, END)  
                 return
-        
         self.checkbutton = ttk.Checkbutton(self.canvasContent, text=item, onvalue=1, offvalue=0)
         self.containerCheckbuttons[self.nrOfCheckbuttons] = self.checkbutton
         self.nrOfCheckbuttons = self.nrOfCheckbuttons + 1
@@ -123,13 +135,54 @@ class ToDo:
         userInput = simpledialog.askstring(title='Enter new title', prompt='Enter the desired title', parent=self.master)
         self.title.configure(text=userInput)
         self.master.title(userInput)
+    
+    # Saves the information about the checkbuttons to a file 
+    def saveToFile(self):
+        title = "./" + self.title.cget('text') + ".txt"
+        outputFile = open(title, 'w')
+        for entry in self.containerCheckbuttons.values():
+            if entry.state():
+                outputFile.write(entry.cget('text') + '\t' + 'True' + '\n')
+            else:
+                outputFile.write(entry.cget('text') + '\t' + 'False' + '\n')
+        outputFile.close()
+
+    # When creating a new window, if using newWindow=Toplevel()
+    # this newWindow will close whenever the fist created window is closed.
+    # For an new independent window, instead use independetNewWindow=Tk()
+    def newWindow(self):
+        self.filename = filedialog.askopenfilename(initialdir=os.getcwd(), title='Select a file', 
+                                                          filetypes=(('text files','*.txt'),))
+        newWindow = Tk()
+        # 0 = starting window. 1 = new window
+        newToDo = ToDo(newWindow, self.filename)
+        newWindow.mainloop()
+    
+    # Opens the specified file and recreating the checkbuttons
+    def openFile(self):
+        newTitle = self.filename.split('/')[-1].split('.', 1)[0]
+        self.title.configure(text=newTitle)
+        self.master.title(newTitle)
+        inputFile = open(self.filename, 'r')
+        content = []
+        for line in inputFile:
+            content = line.split('\t')
+            self.checkbutton = ttk.Checkbutton(self.canvasContent, text=content[0], onvalue=1, offvalue=0)
+            if content[1][:-1] == 'False':
+                self.checkbutton.state(['!alternate'])
+            self.checkbutton.pack(side=TOP, anchor=W, padx=15, pady=5)
+            self.containerCheckbuttons[self.nrOfCheckbuttons] = self.checkbutton
+            self.nrOfCheckbuttons = self.nrOfCheckbuttons + 1
+            
+
 
 
 
 
 def main():
     root = Tk()
-    toDo = ToDo(root)
+    # 0 = starting window. 1 = new window
+    toDo = ToDo(root, '')
     root.mainloop()
 
 if __name__ == "__main__": main()
