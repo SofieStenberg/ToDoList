@@ -5,21 +5,22 @@ from tkinter import simpledialog
 
 class ToDo:
     def __init__(self, master):
+        # Keep track of the number of created checkbuttons to ensure 
+        # a unique ID in the dictionary 
         self.nrOfCheckbuttons = 0
+        # A dictionary to store the checkbuttons
         self.containerCheckbuttons = {}
-
         self.master = master
-
+        # If the user press Enter, it will add the item
         self.master.bind('<Return>', lambda e: self.addItem(self.entryItem.get()))
 
-        
-
-        # Setting a title and background to the master window
+        # Setting a title, background and size to the master window
         self.master.title('ToDo')
         self.master.configure(background='beige')
-        self.master.geometry('800x300')
+        self.master.geometry('800x800')
         self.master.resizable(False, False)
 
+        # Configures the style (background) to the diffrent widgets used in the program 
         self.style = ttk.Style()
         self.style.configure('TFrame', background='beige')
         self.style.configure('TCanvas', background='beige')
@@ -32,11 +33,11 @@ class ToDo:
         #self.frameHeader.configure(width=800, height=50, padx=15)
         self.frameHeader.pack()
 
-        # Configures the title
+        # Configure the title
         self.title = ttk.Label(self.frameHeader, text='ToDo-List', font=('Times New Roman', 24, 'bold'))
         self.title.grid(row=0, column=0, rowspan=4, pady=30)
         
-        # Configure a frame for the buttons and the Entry
+        # Configure a frame for the buttons and the Entry-field
         self.frameManage = ttk.Frame(self.master)#, borderwidth=2, relief=RIDGE)
         self.frameManage.pack(pady=5)
         
@@ -48,26 +49,19 @@ class ToDo:
         ttk.Button(self.frameManage, text='Delete completed items', command=self.deleteFinished).grid(row=1, column=4, padx=5)
         ttk.Button(self.frameManage, text='Delete All', command=self.deletaAll).grid(row=1, column=5, padx=5)
 
-
-        
-
-        # Scrollbar
-        self.canvasContent = Canvas(self.master, width=300, height=300, scrollregion = (0, 0, 500, 500), 
+        # Scrollbar - NOT WORKING?!?!
+        self.canvasContent = Canvas(self.master, width=300, height=300, #scrollregion=(0, 0, 100, 300)
                                     background='beige')
-        self.verticalScrollbar = Scrollbar(self.master, orient=VERTICAL)#, command=self.canvasContent.yview)
-        self.verticalScrollbar.pack(side=RIGHT, fill=Y)
-        self.verticalScrollbar.configure(command=self.canvasContent.yview)
-
-        # Creating a frame for the content
-        #self.canvasContent = Canvas(self.master, yscrollcommand=self.verticalScrollbar.set)
-        self.canvasContent.configure(yscrollcommand=self.verticalScrollbar.set, width=300, height=300)
-        self.canvasContent.pack(side=LEFT, expand=True, fill=BOTH, anchor=W, padx=15)
+        #self.canvasContent.configure(scrollregion=self.canvasContent.bbox('all'))
+        #self.verticalScrollbar = Scrollbar(self.master, orient=VERTICAL, command=self.canvasContent.yview)#, command=self.canvasContent.yview)
+        #self.verticalScrollbar.pack(side=RIGHT, fill=Y)
+        #self.verticalScrollbar.configure(command=self.canvasContent.yview)
+        #self.canvasContent.configure(yscrollcommand=self.verticalScrollbar.set) #, width=300, height=300
+        self.canvasContent.pack(side=LEFT, anchor=W, padx=15, expand=True, fill=BOTH)
         
 
         # self.frameContent = ttk.Frame(self.canvasContent)
         # self.frameContent.pack(side=TOP, anchor=W, padx=15 )
-
-        
 
         # Menu bar
         self.master.option_add('*tearOff', False)
@@ -76,15 +70,13 @@ class ToDo:
         self.file = Menu(self.menubar)
         self.menubar.add_cascade(menu=self.file, label='File')
         self.file.add_separator()
-        self.file.add_command(label='Change title', command=self.changeTitle)
+        self.file.add_command(label='Rename', command=self.changeTitle)
 
         
-
-        
-        
-
-
-
+    # The addItem() function will first check if the entry field is empty or contains an item that already exists
+    # If so, an informational pop up will appear with this information.
+    # Otherwisem a new checkbutton will be created with the specified item.
+    # This function will be executed either by clicking the button 'Add new item' or by pressing Enter
     def addItem(self, item):
         if self.entryItem.get() == "":
             messagebox.showinfo('Missing input' ,"You have to insert an item!")
@@ -103,6 +95,8 @@ class ToDo:
         self.checkbutton.pack(side=TOP, anchor=W, padx=15, pady=5)
         self.entryItem.delete(0, END)
 
+    # Deletes att items that is selected (marked as finished).
+    # This function is executed when clicking the button 'Delete completed items'.
     def deleteFinished(self):
         deletedItems = []
         for key, entry in self.containerCheckbuttons.items():
@@ -114,6 +108,8 @@ class ToDo:
             if item in self.containerCheckbuttons:
                 self.containerCheckbuttons.pop(item)
 
+    # This function will delete all checkbuttons.
+    # This function is executed when pressing the button 'Delete All'
     def deletaAll(self):
         if len(self.containerCheckbuttons) == 0:
             messagebox.showinfo('No entries' ,"There are no entries to delete")
@@ -121,6 +117,8 @@ class ToDo:
             entry.destroy()
         self.containerCheckbuttons.clear()
 
+    # This function will change the title.
+    # Execited when navigating 'File -> Rename'
     def changeTitle(self):
         userInput = simpledialog.askstring(title='Enter new title', prompt='Enter the desired title', parent=self.master)
         self.title.configure(text=userInput)
