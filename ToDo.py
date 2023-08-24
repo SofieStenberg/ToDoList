@@ -1,3 +1,7 @@
+#
+#                   Created by Sofie Stenberg on 2023-08
+#
+
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
